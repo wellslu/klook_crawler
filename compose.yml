@@ -1,0 +1,22 @@
+version: "3"
+services:
+  klook:
+    image: klook/code:latest
+    container_name: klook-code
+    volumes:
+      - C:/Users/wells/OneDrive/Desktop/klook/code:/code
+    depends_on:
+      - chrome
+      - mongo
+    tty: true
+  chrome:
+    image: selenium/standalone-chrome:latest
+    container_name: klook-selenium
+    ports:
+      - "4444:4444"
+    shm_size: 2gb
+  mongo:
+    image: mongo:latest
+    container_name: klook-mongo
+    ports:
+      - "27017:27017"

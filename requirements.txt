@@ -1,0 +1,4 @@
+pandas==1.1.3
+pymongo==4.0.1
+selenium==3.141.0
+apache-airflow==2.2.3
