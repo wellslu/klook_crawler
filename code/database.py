@@ -15,19 +15,16 @@ class Mongo_Database(object):
             if col not in self.db.list_collection_names():
                 print(f'{col} is not in db')
             self.col = self.db[col]
-            return 'connect success'
+            print('connect success')
         except:
-            return 'connect error: client is not exist'
+            print('connect error: client is not exist')
     
     def insert_data(self, data):
         if type(data) is dict:
             self.col.insert_one(data)
             return 'insert success'
-        elif type(data) is list:
-            self.col.insert_many(data)
-            return 'insert success'
         else:
-            return 'insert error: data is not list or dict'
+            return 'insert error'
     
     def get_data(self, query):
         try:
