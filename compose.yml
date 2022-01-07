@@ -1,13 +1,18 @@
 version: "3"
 services:
   klook:
-    image: klook/code:latest
-    container_name: klook-code
+    image: klook/airflow:latest
+    container_name: klook-main
     volumes:
-      - C:/Users/wells/OneDrive/Desktop/klook/code:/code
+      - C:/Users/wells/OneDrive/Desktop/klook/dags:/usr/local/airflow/dags
     depends_on:
       - chrome
       - mongo
+      - webserver
+      - postgres
+      # - flower
+      # - scheduler
+      # - worker
     tty: true
   chrome:
     image: selenium/standalone-chrome:latest
@@ -20,3 +25,137 @@ services:
     container_name: klook-mongo
     ports:
       - "27017:27017"
+
+  postgres:
+    image: postgres:9.6
+    container_name: klook-postgres
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+  webserver:
+    image: klook/airflow:latest
+    container_name: klook-airflow
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      - LOAD_EX=n
+      - EXECUTOR=Local
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    volumes:
+      - C:/Users/wells/OneDrive/Desktop/klook/dags:/usr/local/airflow/dags
+      # - ./plugins:/usr/local/airflow/plugins
+    ports:
+      - "8080:8080"
+    command: webserver
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+
+
+  # redis:
+  #   image: 'redis:5.0.5'
+  #   # command: redis-server --requirepass redispass
+
+  # postgres:
+  #   image: postgres:9.6
+  #   container_name: klook-postgres
+  #   environment:
+  #     - POSTGRES_USER=airflow
+  #     - POSTGRES_PASSWORD=airflow
+  #     - POSTGRES_DB=airflow
+  #   # Uncomment these lines to persist data on the local filesystem.
+  #   #     - PGDATA=/var/lib/postgresql/data/pgdata
+  #   # volumes:
+  #   #     - ./pgdata:/var/lib/postgresql/data/pgdata
+
+  # webserver:
+  #   image: puckel/docker-airflow:1.10.9
+  #   container_name: klook-webserver
+  #   restart: always
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #   environment:
+  #     - LOAD_EX=n
+  #     - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+  #     - EXECUTOR=Celery
+  #     # - POSTGRES_USER=airflow
+  #     # - POSTGRES_PASSWORD=airflow
+  #     # - POSTGRES_DB=airflow
+  #     # - REDIS_PASSWORD=redispass
+  #   volumes:
+  #     - C:/Users/wells/OneDrive/Desktop/klook/dags:/usr/local/airflow/dags
+  #     # Uncomment to include custom plugins
+  #     # - ./plugins:/usr/local/airflow/plugins
+  #   ports:
+  #     - "8080:8080"
+  #   command: webserver
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+  #     interval: 30s
+  #     timeout: 30s
+  #     retries: 3
+
+  # flower:
+  #   image: puckel/docker-airflow:1.10.9
+  #   container_name: klook-flower
+  #   restart: always
+  #   depends_on:
+  #     - redis
+  #   environment:
+  #     - EXECUTOR=Celery
+  #     # - REDIS_PASSWORD=redispass
+  #   ports:
+  #     - "5555:5555"
+  #   command: flower
+
+  # scheduler:
+  #   image: puckel/docker-airflow:1.10.9
+  #   container_name: klook-scheduler
+  #   restart: always
+  #   depends_on:
+  #     - webserver
+  #   volumes:
+  #     - C:/Users/wells/OneDrive/Desktop/klook/dags:/usr/local/airflow/dags
+  #     # Uncomment to include custom plugins
+  #     # - ./plugins:/usr/local/airflow/plugins
+  #   environment:
+  #     - LOAD_EX=n
+  #     - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+  #     - EXECUTOR=Celery
+  #     # - POSTGRES_USER=airflow
+  #     # - POSTGRES_PASSWORD=airflow
+  #     # - POSTGRES_DB=airflow
+  #     # - REDIS_PASSWORD=redispass
+  #   command: scheduler
+
+  # worker:
+  #   image: puckel/docker-airflow:1.10.9
+  #   container_name: klook-worker
+  #   restart: always
+  #   depends_on:
+  #     - scheduler
+  #   volumes:
+  #     - C:/Users/wells/OneDrive/Desktop/klook/dags:/usr/local/airflow/dags
+  #     # Uncomment to include custom plugins
+  #     # - ./plugins:/usr/local/airflow/plugins
+  #   environment:
+  #     - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+  #     - EXECUTOR=Celery
+  #     # - POSTGRES_USER=airflow
+  #     # - POSTGRES_PASSWORD=airflow
+  #     # - POSTGRES_DB=airflow
+  #     # - REDIS_PASSWORD=redispass
+  #   command: worker
